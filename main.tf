@@ -47,19 +47,21 @@ resource "azurerm_subnet" "fw" {
 # VIRTUAL MACHINE (PUBLIC KEY AUTH)
 #################################################################################################################
 
-module "ubuntu_vm_key_auth" {
-  source                      = "github.com/kolosovpetro/AzureLinuxVMTerraform.git//modules/ubuntu-vm-key-auth-no-pip?ref=master"
-  resource_group_name         = azurerm_resource_group.public.name
-  resource_group_location     = azurerm_resource_group.public.location
-  subnet_id                   = azurerm_subnet.vm.id
-  ip_configuration_name       = "ipc-key-auth-vm-${var.prefix}"
-  network_interface_name      = "nic-key-auth-vm-${var.prefix}"
-  os_profile_computer_name    = "vm-key-auth-${var.prefix}"
-  storage_os_disk_name        = "osdisk-key-auth-vm-${var.prefix}"
-  vm_name                     = "vm-key-auth-${var.prefix}"
-  os_profile_admin_public_key = file("${path.root}/id_rsa.pub")
-  os_profile_admin_username   = "razumovsky_r"
+module "windows_vm_custom_image_no_pip" {
+  source                      = "git::git@github.com:kolosovpetro/AzureWindowsVMTerraform.git//modules/windows-vm-custom-image-no-pip?ref=master"
+  ip_configuration_name       = "ipc-vm1-${var.prefix}"
+  network_interface_name      = "nic-vm1-${var.prefix}"
   network_security_group_id   = azurerm_network_security_group.public.id
+  os_profile_admin_password   = trimspace(file("${path.root}/password.txt"))
+  os_profile_admin_username   = "razumovsky_r"
+  os_profile_computer_name    = "vm1-${var.prefix}"
+  location                    = azurerm_resource_group.public.location
+  resource_group_name         = azurerm_resource_group.public.name
+  custom_image_resource_group = "rg-packer-images-win"
+  custom_image_sku            = "windows-server2022-v1"
+  storage_os_disk_name        = "osdisk-vm1-${var.prefix}"
+  subnet_id                   = azurerm_subnet.vm.id
+  vm_name                     = "vm1-${var.prefix}"
 }
 
 #################################################################################################################
@@ -101,8 +103,11 @@ resource "azurerm_firewall_application_rule_collection" "devops_allow" {
 
     target_fqdns = [
       "dev.azure.com",
+      "*.dev.azure.com",
       "*.visualstudio.com",
-      "vsblobprodscus.blob.core.windows.net"
+      "vsblobprodscus.blob.core.windows.net",
+      "*.azureedge.net",
+      "*.microsoftonline.com"
     ]
 
     protocol {
