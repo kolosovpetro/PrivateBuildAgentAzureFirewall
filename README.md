@@ -1,3 +1,7 @@
+## DevOps project
+
+- https://dev.azure.com/PetroKolosovProjects/AzureDevOpsPrivateNetworkIntegration
+
 ## Modules used
 
 - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall

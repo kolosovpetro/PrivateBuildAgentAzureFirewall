@@ -44,10 +44,10 @@ resource "azurerm_subnet" "fw" {
 }
 
 #################################################################################################################
-# VIRTUAL MACHINE (PUBLIC KEY AUTH)
+# VIRTUAL MACHINES
 #################################################################################################################
 
-module "windows_vm_custom_image_no_pip" {
+module "windows_vm" {
   source                      = "git::git@github.com:kolosovpetro/AzureWindowsVMTerraform.git//modules/windows-vm-custom-image-no-pip?ref=master"
   ip_configuration_name       = "ipc-vm1-${var.prefix}"
   network_interface_name      = "nic-vm1-${var.prefix}"
@@ -62,6 +62,21 @@ module "windows_vm_custom_image_no_pip" {
   storage_os_disk_name        = "osdisk-vm1-${var.prefix}"
   subnet_id                   = azurerm_subnet.vm.id
   vm_name                     = "vm1-${var.prefix}"
+}
+
+module "linux_vm" {
+  source                    = "github.com/kolosovpetro/AzureLinuxVMTerraform.git//modules/ubuntu-vm-password-auth-custom-image-no-pip"
+  ip_configuration_name     = "pip-vm2-${var.prefix}"
+  network_interface_name    = "nic-vm2-${var.prefix}"
+  os_profile_admin_password = trimspace(file("${path.root}/password.txt"))
+  os_profile_admin_username = "razumovsky_r"
+  os_profile_computer_name  = "vm2-${var.prefix}"
+  resource_group_name       = azurerm_resource_group.public.name
+  resource_group_location   = azurerm_resource_group.public.location
+  storage_os_disk_name      = "osdisk-vm2-${var.prefix}"
+  subnet_id                 = azurerm_subnet.vm.id
+  vm_name                   = "vm2-${var.prefix}"
+  network_security_group_id = azurerm_network_security_group.public.id
 }
 
 #################################################################################################################
@@ -103,11 +118,16 @@ resource "azurerm_firewall_application_rule_collection" "devops_allow" {
 
     target_fqdns = [
       "dev.azure.com",
+      "aex.dev.azure.com",
+      "mp.azure.net",
       "*.dev.azure.com",
       "*.visualstudio.com",
       "vsblobprodscus.blob.core.windows.net",
       "*.azureedge.net",
-      "*.microsoftonline.com"
+      "*.microsoftonline.com",
+      "*.msauth.net",
+      "*.dedup.microsoft.com",
+      "*.vsassets.io",
     ]
 
     protocol {
