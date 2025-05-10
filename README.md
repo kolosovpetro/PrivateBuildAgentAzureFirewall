@@ -4,6 +4,8 @@ This setup provisions a private self-hosted Azure DevOps build
 agent that resides in a secure Azure Virtual Network (VNet) and communicates with Azure DevOps over
 the internet in a controlled way using Azure Firewall. The configuration is managed using Terraform.
 
+- [Azure DevOps allowed urls](https://learn.microsoft.com/en-us/azure/devops/organizations/security/allow-list-ip-url?view=azure-devops&tabs=IP-V4)
+
 ## Objective
 
 - Deploy a self-hosted Azure DevOps build agent within a private VNet (no public IP).
