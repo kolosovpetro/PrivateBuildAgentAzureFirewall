@@ -4,7 +4,11 @@ This setup provisions a private self-hosted Azure DevOps build
 agent that resides in a secure Azure Virtual Network (VNet) and communicates with Azure DevOps over
 the internet in a controlled way using Azure Firewall. The configuration is managed using Terraform.
 
+## Documentation
+
 - [Azure DevOps allowed urls](https://learn.microsoft.com/en-us/azure/devops/organizations/security/allow-list-ip-url?view=azure-devops&tabs=IP-V4)
+- sudo systemctl status vsts.agent.PetroKolosovProjects.AzureDevOpsPrivateNetwork.vm2 + tab to get service status on linux
+- cat _diag/file.log to check agent logs
 
 ## Objective
 
@@ -18,7 +22,7 @@ the internet in a controlled way using Azure Firewall. The configuration is mana
 
 - **Private Subnet**: Hosts the self-hosted build agent.
 - **Firewall Subnet**: Dedicated subnet to host the Azure Firewall (requires name "AzureFirewallSubnet").
-- **(Optional) Jumpbox Subnet**: Optional subnet for a Bastion host or Jumpbox to allow administrative access.
+- **(Optional) Jump box Subnet**: Optional subnet for a Bastion host or Jump box to allow administrative access.
 
 ### Azure Firewall Configuration
 

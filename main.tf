@@ -97,8 +97,9 @@ resource "azurerm_firewall" "fw" {
   resource_group_name = azurerm_resource_group.public.name
   sku_name            = "AZFW_VNet"
   sku_tier            = "Standard"
+
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ipc-fw-${var.prefix}"
     subnet_id            = azurerm_subnet.fw.id
     public_ip_address_id = azurerm_public_ip.fw_pip.id
   }
