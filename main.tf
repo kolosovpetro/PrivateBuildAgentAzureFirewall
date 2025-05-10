@@ -48,7 +48,7 @@ resource "azurerm_subnet" "fw" {
 #################################################################################################################
 
 module "windows_vm" {
-  source                      = "git::git@github.com:kolosovpetro/AzureWindowsVMTerraform.git//modules/windows-vm-custom-image-no-pip?ref=master"
+  source                      = "github.com/kolosovpetro/AzureWindowsVMTerraform.git//modules/windows-vm-custom-image-no-pip?ref=master"
   ip_configuration_name       = "ipc-vm1-${var.prefix}"
   network_interface_name      = "nic-vm1-${var.prefix}"
   network_security_group_id   = azurerm_network_security_group.public.id
