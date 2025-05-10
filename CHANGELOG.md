@@ -9,13 +9,9 @@ and this project adheres to [Semantic Versioning v2.0.0](https://semver.org/spec
 
 ### Changed
 
-- Update gitignore
-- Commit lock file
-- Move variable from locals
-- Git ignore txt files
-- Git ignore ssh keys
-- Update GitHub actions CI
-- Fix encoding and BOM characters
-- Azure pipelines for terraform
-- Add editorconfig
-- Remove example sas token
+- Design CIDR range for subnets
+- Provision VNET ans subnets
+- Provision virtual machines (windows, linux)
+- Provision Bastion host
+- Configure route tables
+- Configure Azure Firewall

@@ -1,102 +1,64 @@
-# Terraform template
+# Private Azure DevOps Build Agent with Controlled Internet Access via Azure Firewall
 
-Terraform template for modules and submodules.
-Includes pre-commit hooks that lint the terraform code and generate module's
-documentation as part of README file.
-Contains examples of terraform CI/CD pipelines for GitHub Actions and Azure Pipelines.
+This setup provisions a private self-hosted Azure DevOps build
+agent that resides in a secure Azure Virtual Network (VNet) and communicates with Azure DevOps over
+the internet in a controlled way using Azure Firewall. The configuration is managed using Terraform.
 
-## Terraform Init
+- [Azure DevOps allowed urls](https://learn.microsoft.com/en-us/azure/devops/organizations/security/allow-list-ip-url?view=azure-devops&tabs=IP-V4)
 
-- Create and configure Azure Storage Account for Terraform state
-- Create `azure.sas.conf` file with the following content:
-    ```bash
-    storage_account_name = "storage_account_name"
-    container_name       = "container_name"
-    key                  = "terraform.tfstate"
-    sas_token            = "sas_token"
-    ```
-- `terraform init -backend-config="azure.sas.conf" -reconfigure -upgrade`
+## Objective
 
-## Module referencing
+- Deploy a self-hosted Azure DevOps build agent within a private VNet (no public IP).
+- Restrict internet access to only what is required for Azure DevOps communication.
+- Use Azure Firewall to inspect and control all outbound traffic.
 
-- Bitbucket: `git::git@bitbucket.org:kolosovpetro/terraform.git//modules/storage`
-- Github: `git::git@github.com:kolosovpetro/terraform.git//modules/storage`
+## Architecture Overview
 
-## Pre-commit configuration
+### VNet Structure
 
-- Install python3 via Windows Store
-- `pip install --upgrade pip`
-- `pip install pre-commit`
-- Update PATH variable
-- `pre-commit install`
+- **Private Subnet**: Hosts the self-hosted build agent.
+- **Firewall Subnet**: Dedicated subnet to host the Azure Firewall (requires name "AzureFirewallSubnet").
+- **(Optional) Jumpbox Subnet**: Optional subnet for a Bastion host or Jumpbox to allow administrative access.
 
-### Install terraform docs
+### Azure Firewall Configuration
 
-- `choco install terraform-docs`
+- Acts as a NAT gateway to provide outbound internet access to the build agent.
+- Configured with outbound rules to only allow traffic to Azure DevOps services.
+- All other internet traffic is denied.
+- DNS settings configured for name resolution if necessary.
+- UDRs (User Defined Routes) force all traffic through the firewall.
 
-### Install tflint
+### Route Table
 
-- `choco install tflint`
+- Associated with the private subnet where the agent resides.
+- Includes a default route (0.0.0.0/0) that points to the private IP of the Azure Firewall in the same VNet.
 
-### Documentation
+## Azure DevOps Access Rules
 
-- https://github.com/antonbabenko/pre-commit-terraform
-- https://github.com/kolosovpetro/AzureTerraformBackend
-- https://github.com/terraform-docs/terraform-docs
-- https://terraform-docs.io/user-guide/installation/
-- https://pre-commit.com/
+- Configure Azure Firewall application and network rules to allow traffic to:
+    - Azure DevOps service tags or specific IP ranges
+    - Required domain names (e.g., dev.azure.com, *.vsts.ms, etc.)
 
-## Storage account configuration file
+Ensure the list of allowed endpoints is kept up to date by referencing the official Azure DevOps IP ranges.
 
-  ```bash
-  storage_account_name = "storage_account_name"
-  container_name       = "container_name"
-  key                  = "terraform.tfstate"
-  sas_token            = "sas_token"
-  ```
+## Notes
 
-## Deploy storage account for terraform state
+- Use Terraform to declaratively define and deploy all components.
+- Regularly validate the list of Azure DevOps IPs and URLs, as they may change.
+- Consider enabling diagnostics and logging on the firewall for monitoring.
 
-- See [CreateAzureStorageAccount.ps1](./CreateAzureStorageAccount.ps1)
+This architecture provides a secure and scalable foundation for running private build agents in Azure with controlled
+external connectivity.
 
-# Module documentation
+## DevOps project
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+- https://dev.azure.com/PetroKolosovProjects/AzureDevOpsPrivateNetworkIntegration
 
-## Requirements
+## Modules used
 
-| Name                                                                | Version |
-|---------------------------------------------------------------------|---------|
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | =3.71.0 |
-
-## Providers
-
-| Name                                                          | Version |
-|---------------------------------------------------------------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.71.0  |
-
-## Modules
-
-| Name                                                                             | Source                      | Version |
-|----------------------------------------------------------------------------------|-----------------------------|---------|
-| <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | ./modules/example_submodule | n/a     |
-
-## Resources
-
-| Name                                                                                                                              | Type        |
-|-----------------------------------------------------------------------------------------------------------------------------------|-------------|
-| [azurerm_resource_group.public](https://registry.terraform.io/providers/hashicorp/azurerm/3.71.0/docs/resources/resource_group)   | resource    |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/3.71.0/docs/data-sources/client_config) | data source |
-
-## Inputs
-
-| Name                                                                                                        | Description              | Type     | Default | Required |
-|-------------------------------------------------------------------------------------------------------------|--------------------------|----------|---------|:--------:|
-| <a name="input_prefix"></a> [prefix](#input\_prefix)                                                        | Prefix for all resources | `string` | n/a     |   yes    |
-| <a name="input_resource_group_location"></a> [resource\_group\_location](#input\_resource\_group\_location) | Resource group location  | `string` | n/a     |   yes    |
-| <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)             | Resource group name      | `string` | n/a     |   yes    |
-
-## Outputs
-
-No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_application_rule_collection
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/bastion_host
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route
+- https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association
